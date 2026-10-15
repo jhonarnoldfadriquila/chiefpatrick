@@ -12,7 +12,7 @@ export function LoginForm({ dbDown }: { dbDown?: boolean }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(dbDown ? "The database is not reachable. Check that MySQL is running." : "");
+  const [error, setError] = useState(dbDown ? "The database is not reachable. Check DATABASE_URL in .env.local." : "");
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {

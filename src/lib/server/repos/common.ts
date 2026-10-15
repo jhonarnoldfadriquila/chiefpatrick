@@ -1,4 +1,4 @@
-import { exec, query } from "@/lib/server/mysql";
+import { exec, query } from "@/lib/server/db";
 
 // Tables that have a `position` column, and the column that groups them (if any).
 const ORDERED = {

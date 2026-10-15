@@ -1,4 +1,4 @@
-import { exec, query, queryOne, type Row } from "@/lib/server/mysql";
+import { exec, query, queryOne, type Row } from "@/lib/server/db";
 import { moveRow, nextPosition, setClause, toBool, toNum } from "@/lib/server/repos/common";
 import type { MenuCategory, MenuItemRecord } from "@/types/admin";
 import type { MenuSection } from "@/lib/data/menu";
@@ -42,7 +42,7 @@ export async function listItems(opts: { categoryId?: number; q?: string; limit: 
     params.push(opts.categoryId);
   }
   if (opts.q) {
-    where.push("i.name LIKE ?");
+    where.push("i.name ILIKE ?");
     params.push(`%${opts.q}%`);
   }
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";

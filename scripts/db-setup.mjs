@@ -1,27 +1,22 @@
 // npm run db:setup [-- --reset-content]
 //
-// 1. Creates the database (DB_NAME) if it doesn't exist.
-// 2. Applies database/schema.sql (CREATE TABLE IF NOT EXISTS — safe to re-run).
-// 3. Loads database/seed.sql (the site's real content) the first time, or again with --reset-content.
-// 4. Creates the first admin account from ADMIN_EMAIL / ADMIN_PASSWORD if no users exist yet.
+// 1. Applies database/schema.sql (CREATE TABLE IF NOT EXISTS — safe to re-run).
+// 2. Loads database/seed.sql (the site's real content) the first time, or again with --reset-content.
+// 3. Creates the first admin account from ADMIN_EMAIL / ADMIN_PASSWORD if no users exist yet.
+//
+// The database itself comes from DATABASE_URL (on Supabase it already exists: "postgres").
 import { readFileSync } from "node:fs";
 import bcrypt from "bcryptjs";
-import { connectDb, connectServer, loadEnv } from "./db-lib.mjs";
+import { connectDb, loadEnv } from "./db-lib.mjs";
 
 loadEnv();
 const reset = process.argv.includes("--reset-content");
-
-const { conn: server, database } = await connectServer();
-if (!/^[A-Za-z0-9_]+$/.test(database)) throw new Error(`DB_NAME "${database}" may only contain letters, numbers and _`);
-await server.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-await server.end();
-console.log(`✓ database "${database}"`);
 
 const db = await connectDb();
 await db.query(readFileSync("database/schema.sql", "utf8"));
 console.log("✓ schema");
 
-const [[{ n: categories }]] = await db.query("SELECT COUNT(*) AS n FROM menu_categories");
+const { rows: [{ n: categories }] } = await db.query("SELECT COUNT(*)::int AS n FROM menu_categories");
 if (categories === 0 || reset) {
   await db.query(readFileSync("database/seed.sql", "utf8"));
   console.log(reset ? "✓ content reset from database/seed.sql" : "✓ content loaded from database/seed.sql");
@@ -29,7 +24,7 @@ if (categories === 0 || reset) {
   console.log("• content already present (use --reset-content to reload it)");
 }
 
-const [[{ n: users }]] = await db.query("SELECT COUNT(*) AS n FROM users");
+const { rows: [{ n: users }] } = await db.query("SELECT COUNT(*)::int AS n FROM users");
 if (users === 0) {
   const email = (process.env.ADMIN_EMAIL || "admin@chefpatrickskitchen.ph").toLowerCase();
   let password = process.env.ADMIN_PASSWORD;

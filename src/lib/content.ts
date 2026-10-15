@@ -1,6 +1,6 @@
-// Content access layer for the public site. Everything staff edit in the admin lives in MySQL;
+// Content access layer for the public site. Everything staff edit in the admin lives in the database;
 // these functions read it and fall back to the built-in content in src/lib/data if the database
-// can't be reached, so the website keeps working even when MySQL is down.
+// can't be reached, so the website keeps working even when the database is down.
 import { cateringPackages, eventOfferings } from "@/lib/data/catering";
 import { DEFAULT_SETTINGS } from "@/lib/data/defaults";
 import { testimonials as fallbackTestimonials } from "@/lib/data/home";

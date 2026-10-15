@@ -1,4 +1,4 @@
-import { exec, json, query, type Row } from "@/lib/server/mysql";
+import { exec, json, query, type Row } from "@/lib/server/db";
 import { moveRow, nextPosition, setClause, toBool } from "@/lib/server/repos/common";
 import type { PackageRecord } from "@/types/admin";
 

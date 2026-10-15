@@ -16,6 +16,8 @@ interface SidebarProps {
   collapsed: boolean;
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  /** Sign-in is switched off (ADMIN_AUTH_DISABLED): show "View Site" instead of "Log Out". */
+  noLogin?: boolean;
   onLogout: () => void;
   onChangePassword: () => void;
 }
@@ -28,7 +30,7 @@ export const initials = (name: string) =>
     .slice(0, 2)
     .toUpperCase();
 
-function SidebarBody({ user, collapsed, onLogout, onChangePassword, onNavigate }: Omit<SidebarProps, "mobileOpen" | "onCloseMobile"> & { onNavigate?: () => void }) {
+function SidebarBody({ user, collapsed, noLogin, onLogout, onChangePassword, onNavigate }: Omit<SidebarProps, "mobileOpen" | "onCloseMobile"> & { onNavigate?: () => void }) {
   const pathname = usePathname();
   const [menu, setMenu] = useState(false);
   const profile = useRef<HTMLDivElement>(null);
@@ -102,15 +104,27 @@ function SidebarBody({ user, collapsed, onLogout, onChangePassword, onNavigate }
             </>
           )}
         </button>
-        <button
-          type="button"
-          onClick={onLogout}
-          className={cn("mt-1 flex h-9 w-full items-center gap-3 rounded-md text-sm text-adm-muted hover:bg-adm-card2 hover:text-adm-red", collapsed ? "justify-center" : "px-3")}
-          title="Log out"
-        >
-          <SignOutIcon size={18} />
-          {!collapsed && "Log Out"}
-        </button>
+        {noLogin ? (
+          <Link
+            href="/"
+            target="_blank"
+            className={cn("mt-1 flex h-9 w-full items-center gap-3 rounded-md text-sm text-adm-muted hover:bg-adm-card2 hover:text-adm-text", collapsed ? "justify-center" : "px-3")}
+            title="View site"
+          >
+            <ArrowSquareOutIcon size={18} />
+            {!collapsed && "View Site"}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={onLogout}
+            className={cn("mt-1 flex h-9 w-full items-center gap-3 rounded-md text-sm text-adm-muted hover:bg-adm-card2 hover:text-adm-red", collapsed ? "justify-center" : "px-3")}
+            title="Log out"
+          >
+            <SignOutIcon size={18} />
+            {!collapsed && "Log Out"}
+          </button>
+        )}
       </div>
     </div>
   );

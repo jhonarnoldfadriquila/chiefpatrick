@@ -1,5 +1,5 @@
 // Reservations, events and inquiries.
-import { exec, query, queryOne, type Row } from "@/lib/server/mysql";
+import { exec, query, queryOne, type Row } from "@/lib/server/db";
 import { setClause, toBool, toNum } from "@/lib/server/repos/common";
 import type { EventRecord, InquiryRecord, ReservationRecord } from "@/types/admin";
 
@@ -39,7 +39,7 @@ function filters(opts: ListOpts, searchCols: string[], dateCol: string) {
     params.push(opts.status);
   }
   if (opts.q) {
-    where.push(`(${searchCols.map((c) => `${c} LIKE ?`).join(" OR ")})`);
+    where.push(`(${searchCols.map((c) => `${c} ILIKE ?`).join(" OR ")})`);
     params.push(...searchCols.map(() => `%${opts.q}%`));
   }
   if (opts.from) {

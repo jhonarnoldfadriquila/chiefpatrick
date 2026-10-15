@@ -4,7 +4,7 @@ The public website and admin dashboard for Chef Patrick's Kitchen, a Filipino an
 
 - **Website**: home, about, menu, packages, events, venues, gallery and contact, with GSAP scroll animation, Lenis smooth scrolling and page transitions.
 - **Admin** (`/admin`): dashboard with revenue chart and statistics; management of the menu, catering packages, events, reservations, inquiries, gallery, testimonials, venues and website settings; staff accounts.
-- **Backend**: REST API (Next.js route handlers) on **MySQL / MariaDB**.
+- **Backend**: REST API (Next.js route handlers) on **PostgreSQL** (Supabase).
 
 ## Stack
 
@@ -14,7 +14,7 @@ The public website and admin dashboard for Chef Patrick's Kitchen, a Filipino an
 | Styling | Tailwind CSS 4 |
 | Website motion | GSAP 3 (ScrollTrigger, SplitText, Flip), Lenis |
 | Admin UI | Framer Motion, Recharts, Phosphor Icons |
-| Database | MySQL 8 or MariaDB 10.4+ via `mysql2` (parameterized queries only) |
+| Database | PostgreSQL 13+ / Supabase via `pg` (parameterized queries only) |
 | Auth | Email + password (bcrypt), database sessions in an httpOnly cookie, admin/staff roles |
 
 The project keeps one Next.js app for both the website and the backend: the API lives in `src/app/api`, the database code in `src/lib/server`, and the React admin in `src/app/admin` + `src/components/admin`.
@@ -22,14 +22,14 @@ The project keeps one Next.js app for both the website and the backend: the API 
 ## Requirements
 
 - Node.js 20 or newer
-- MySQL 8 or MariaDB 10.4+ (XAMPP's MySQL works out of the box)
+- A PostgreSQL database: a free [Supabase](https://supabase.com) project, or PostgreSQL installed locally
 
 ## Setup
 
 ```bash
 npm install
 cp .env.example .env.local      # then fill in the values (see below)
-npm run db:setup                # creates the database, tables, content and the first admin account
+npm run db:setup                # creates the tables, loads the content and the first admin account
 npm run db:demo                 # optional: sample reservations, events, inquiries for the dashboard
 npm run dev                     # http://localhost:3000  ·  admin: http://localhost:3000/admin
 ```
@@ -38,20 +38,22 @@ npm run dev                     # http://localhost:3000  ·  admin: http://local
 
 | Variable | Purpose |
 |---|---|
-| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | MySQL connection (XAMPP default: `root` with an empty password) |
+| `DATABASE_URL` | PostgreSQL connection string. Supabase: **Connect** → **Session pooler**, with your database password filled in |
 | `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | First admin account, created by `npm run db:setup` when no users exist (password: 8+ characters) |
 | `ADMIN_SECRET` | Long random string (generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`) |
 | `UPLOAD_DIR` | Optional. Where admin photo uploads are stored (default `./uploads`) |
 
 Never commit `.env.local`. It is git-ignored.
 
-### Starting MySQL with XAMPP
+### Using Supabase
 
-Start MySQL from the XAMPP Control Panel, or run:
+1. Create a project at supabase.com and note the **database password** you choose.
+2. Open **Connect** (top of the dashboard) → **Session pooler**, copy the connection string, put your password in place of `[YOUR-PASSWORD]`, and set it as `DATABASE_URL` in `.env.local`.
+3. Run `npm run db:setup` (and `npm run db:demo` for sample dashboard data).
 
-```powershell
-& "C:\xampp\mysql\bin\mysqld.exe" --defaults-file="C:\xampp\mysql\bin\my.ini" --standalone
-```
+Alternatively, paste `database/schema.sql` and then `database/seed.sql` into the Supabase **SQL Editor** and run them; then run `npm run db:setup` once to create the admin account.
+
+Every table has Row Level Security switched on with no policies, so Supabase's public REST API can't read them (the admin users and customer bookings stay private). The app connects with the database password and is not affected.
 
 ## Scripts
 
@@ -60,7 +62,7 @@ Start MySQL from the XAMPP Control Panel, or run:
 | `npm run dev` | Development server. Run only one at a time; if it reports "Module not found" after big changes, stop it, delete `.next` and start again. |
 | `npm run build` / `npm start` | Production build and server |
 | `npm run typecheck` | TypeScript check |
-| `npm run db:setup` | Create/upgrade the schema and load the content (safe to re-run). `-- --reset-content` reloads `database/seed.sql` |
+| `npm run db:setup` | Create the tables and load the content (safe to re-run). `-- --reset-content` reloads `database/seed.sql` |
 | `npm run db:demo` | Add sample dashboard data (dates relative to today). `-- --clear` removes it |
 
 ## Demo data
@@ -76,7 +78,7 @@ database/
   schema.sql            tables (users, sessions, menu, packages, events, reservations, inquiries, gallery, venues, testimonials, settings)
   seed.sql              the site's real content (menu, packages, gallery, venues, settings)
 scripts/
-  db-setup.mjs          creates the database, applies schema + seed, creates the first admin
+  db-setup.mjs          applies schema + seed, creates the first admin
   db-demo.mjs           adds / clears demo dashboard data
 src/
   app/
@@ -94,9 +96,9 @@ src/
     admin/              shell (sidebar, header), dashboard panels, forms, management pages, UI kit
     home/ layout/ motion/ forms/ ...   public website
   lib/
-    server/             mysql pool, auth, validation, http helpers, uploads, repositories (SQL)
+    server/             PostgreSQL pool, auth, validation, http helpers, uploads, repositories (SQL)
     admin/api.ts        typed API client for the admin
-    content.ts          public-site content (reads MySQL, falls back to built-in content)
+    content.ts          public-site content (reads the database, falls back to built-in content)
     data/               built-in content (used for seeding and as a fallback)
   types/                shared types
 ```
@@ -110,4 +112,4 @@ src/
 
 ## Deployment notes
 
-Run on a server that keeps files and can reach MySQL (a VPS, or your own machine with `npm run build && npm start`). Set the environment variables there, run `npm run db:setup` once, and back up both the database and the `uploads/` folder regularly.
+Run on a server that keeps files and can reach the database (a VPS, or your own machine with `npm run build && npm start`). Set the environment variables there, run `npm run db:setup` once, and back up both the database and the `uploads/` folder regularly.

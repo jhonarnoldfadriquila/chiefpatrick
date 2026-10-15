@@ -1,6 +1,6 @@
 // Dashboard numbers: statistic cards with period-over-period change, the revenue report, global
 // search and the notification feed.
-import { query } from "@/lib/server/mysql";
+import { query } from "@/lib/server/db";
 import type { RevenuePoint, StatCard } from "@/types/admin";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -24,8 +24,8 @@ export async function statCards(from: string, to: string): Promise<StatCard[]> {
   const added = async (table: string, extra = "") => {
     const [r] = await query<{ cur: number; prev: number; total: number }>(
       `SELECT
-         SUM(DATE(created_at) BETWEEN ? AND ?) AS cur,
-         SUM(DATE(created_at) BETWEEN ? AND ?) AS prev,
+         COUNT(*) FILTER (WHERE created_at::date BETWEEN ?::date AND ?::date) AS cur,
+         COUNT(*) FILTER (WHERE created_at::date BETWEEN ?::date AND ?::date) AS prev,
          COUNT(*) AS total
        FROM ${table} ${extra}`,
       [from, to, prevFrom, prevTo],
@@ -37,7 +37,7 @@ export async function statCards(from: string, to: string): Promise<StatCard[]> {
     added("menu_items"),
     added("reservations"),
     added("packages"),
-    added("events", "WHERE event_date >= CURDATE() - INTERVAL 365 DAY"),
+    added("events", "WHERE event_date >= CURRENT_DATE - 365"),
     added("inquiries", "WHERE status <> 'resolved'"),
   ]);
   const [pending] = await query<{ n: number }>("SELECT COUNT(*) AS n FROM inquiries WHERE status <> 'resolved'");
@@ -56,8 +56,8 @@ export async function revenue(range: "7d" | "30d" | "12m"): Promise<RevenuePoint
   const today = iso(new Date());
   if (range === "12m") {
     const rows = await query<{ ym: string; total: number }>(
-      `SELECT DATE_FORMAT(event_date, '%Y-%m') AS ym, SUM(amount) AS total FROM events
-       WHERE status IN ('confirmed','completed') AND event_date > DATE_SUB(CURDATE(), INTERVAL 12 MONTH) AND event_date <= CURDATE()
+      `SELECT to_char(event_date, 'YYYY-MM') AS ym, SUM(amount) AS total FROM events
+       WHERE status IN ('confirmed','completed') AND event_date > CURRENT_DATE - INTERVAL '12 months' AND event_date <= CURRENT_DATE
        GROUP BY ym`,
     );
     const byMonth = new Map(rows.map((r) => [r.ym, Number(r.total)]));
@@ -77,7 +77,7 @@ export async function revenue(range: "7d" | "30d" | "12m"): Promise<RevenuePoint
   const start = addDays(today, -(days - 1));
   const rows = await query<{ d: string; total: number }>(
     `SELECT event_date AS d, SUM(amount) AS total FROM events
-     WHERE status IN ('confirmed','completed') AND event_date BETWEEN ? AND ? GROUP BY event_date`,
+     WHERE status IN ('confirmed','completed') AND event_date BETWEEN ?::date AND ?::date GROUP BY event_date`,
     [start, today],
   );
   const byDay = new Map(rows.map((r) => [r.d, Number(r.total)]));
@@ -99,10 +99,10 @@ export interface SearchHit {
 export async function search(q: string): Promise<SearchHit[]> {
   const like = `%${q}%`;
   const [menu, res, ev, inq] = await Promise.all([
-    query("SELECT i.id, i.name, c.name AS cat FROM menu_items i JOIN menu_categories c ON c.id = i.category_id WHERE i.name LIKE ? LIMIT 5", [like]),
-    query("SELECT id, name, event_date, event_type FROM reservations WHERE name LIKE ? OR email LIKE ? OR phone LIKE ? ORDER BY created_at DESC LIMIT 5", [like, like, like]),
-    query("SELECT id, name, event_date, location FROM events WHERE name LIKE ? OR location LIKE ? ORDER BY event_date DESC LIMIT 5", [like, like]),
-    query("SELECT id, name, subject FROM inquiries WHERE name LIKE ? OR email LIKE ? OR subject LIKE ? ORDER BY created_at DESC LIMIT 5", [like, like, like]),
+    query("SELECT i.id, i.name, c.name AS cat FROM menu_items i JOIN menu_categories c ON c.id = i.category_id WHERE i.name ILIKE ? LIMIT 5", [like]),
+    query("SELECT id, name, event_date, event_type FROM reservations WHERE name ILIKE ? OR email ILIKE ? OR phone ILIKE ? ORDER BY created_at DESC LIMIT 5", [like, like, like]),
+    query("SELECT id, name, event_date, location FROM events WHERE name ILIKE ? OR location ILIKE ? ORDER BY event_date DESC LIMIT 5", [like, like]),
+    query("SELECT id, name, subject FROM inquiries WHERE name ILIKE ? OR email ILIKE ? OR subject ILIKE ? ORDER BY created_at DESC LIMIT 5", [like, like, like]),
   ]);
   return [
     ...menu.map((r) => ({ type: "menu" as const, id: r.id, title: r.name, subtitle: `Menu · ${r.cat}`, href: `/admin/menu?edit=${r.id}` })),

@@ -8,7 +8,7 @@ import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { exec, queryOne } from "@/lib/server/mysql";
+import { exec, queryOne } from "@/lib/server/db";
 
 export type Role = "admin" | "staff";
 export interface SessionUser {
@@ -61,7 +61,7 @@ export async function login(email: string, password: string): Promise<SessionUse
   if (!user || !valid) return null;
 
   const token = randomBytes(32).toString("hex");
-  await exec("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? DAY))", [sha256(token), user.id, SESSION_DAYS]);
+  await exec("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, NOW() + ?::int * INTERVAL '1 day')", [sha256(token), user.id, SESSION_DAYS]);
   await exec("DELETE FROM sessions WHERE expires_at < NOW()");
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
@@ -80,7 +80,16 @@ export async function logout() {
   jar.delete(COOKIE);
 }
 
+// Dev shortcut: ADMIN_AUTH_DISABLED=true skips sign-in and acts as the first admin account.
+// Ignored in production so a deployed site can never be left open by accident.
+export const authDisabled = process.env.ADMIN_AUTH_DISABLED === "true" && process.env.NODE_ENV !== "production";
+const GUEST_ADMIN: SessionUser = { id: 0, name: "Admin (no login)", email: "admin@localhost", role: "admin" };
+
 export async function currentUser(): Promise<SessionUser | null> {
+  if (authDisabled) {
+    const admin = await queryOne<SessionUser>("SELECT id, name, email, role FROM users WHERE role = 'admin' ORDER BY id LIMIT 1").catch(() => null);
+    return admin ?? GUEST_ADMIN;
+  }
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   return queryOne<SessionUser>(

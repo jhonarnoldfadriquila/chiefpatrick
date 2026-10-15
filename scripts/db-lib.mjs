@@ -1,7 +1,7 @@
 // Shared helpers for the database scripts: load .env.local / .env (Next.js does this for the app,
-// but plain Node scripts don't) and open a MySQL connection.
+// but plain Node scripts don't) and open a PostgreSQL connection.
 import { existsSync, readFileSync } from "node:fs";
-import mysql from "mysql2/promise";
+import pg from "pg";
 
 export function loadEnv() {
   for (const file of [".env.local", ".env"]) {
@@ -14,22 +14,25 @@ export function loadEnv() {
   }
 }
 
+/** Same rules as src/lib/server/db.ts: SSL for hosted databases (Supabase), none for localhost. */
 export function dbConfig() {
-  return {
-    host: process.env.DB_HOST ?? "127.0.0.1",
-    port: Number(process.env.DB_PORT ?? 3306),
-    user: process.env.DB_USER ?? "root",
-    password: process.env.DB_PASSWORD ?? "",
-    database: process.env.DB_NAME ?? "cpk",
-  };
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.");
+  const url = new URL(process.env.DATABASE_URL);
+  const local = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  url.searchParams.delete("sslmode");
+  return { connectionString: url.toString(), ssl: local || process.env.DB_SSL === "false" ? false : { rejectUnauthorized: false } };
 }
 
-/** Connection to the server (no database selected), for CREATE DATABASE. */
-export async function connectServer() {
-  const { database, ...cfg } = dbConfig();
-  return { conn: await mysql.createConnection({ ...cfg, multipleStatements: true, charset: "utf8mb4" }), database };
-}
-
+/** A connected client whose query() also accepts `?` placeholders, like the app's db helper. */
 export async function connectDb() {
-  return mysql.createConnection({ ...dbConfig(), multipleStatements: true, charset: "utf8mb4", dateStrings: true });
+  const client = new pg.Client(dbConfig());
+  await client.connect();
+  return {
+    query: (sql, params) => {
+      if (!params) return client.query(sql); // plain SQL, may hold several statements
+      let n = 0;
+      return client.query(sql.replace(/\?/g, () => `$${++n}`), params);
+    },
+    end: () => client.end(),
+  };
 }

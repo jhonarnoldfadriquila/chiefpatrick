@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { BellIcon, CaretDownIcon, KeyIcon, ListIcon, MagnifyingGlassIcon, SidebarSimpleIcon, SignOutIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, BellIcon, CaretDownIcon, KeyIcon, ListIcon, MagnifyingGlassIcon, SidebarSimpleIcon, SignOutIcon } from "@phosphor-icons/react";
 import { initials } from "@/components/admin/shell/Sidebar";
 import { useDismiss } from "@/components/admin/shell/useDismiss";
 import { api } from "@/lib/admin/api";
@@ -184,11 +184,12 @@ interface HeaderProps {
   user: SessionUserLite;
   onToggleSidebar: () => void;
   onOpenMobile: () => void;
+  noLogin?: boolean;
   onLogout: () => void;
   onChangePassword: () => void;
 }
 
-export function Header({ user, onToggleSidebar, onOpenMobile, onLogout, onChangePassword }: HeaderProps) {
+export function Header({ user, onToggleSidebar, onOpenMobile, noLogin, onLogout, onChangePassword }: HeaderProps) {
   const [menu, setMenu] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useDismiss(box, menu, () => setMenu(false));
@@ -229,9 +230,15 @@ export function Header({ user, onToggleSidebar, onOpenMobile, onLogout, onChange
                 <button type="button" onClick={() => (setMenu(false), onChangePassword())} className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
                   <KeyIcon size={16} /> Change password
                 </button>
-                <button type="button" onClick={onLogout} className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-red hover:bg-adm-card">
-                  <SignOutIcon size={16} /> Log out
-                </button>
+                {noLogin ? (
+                  <Link href="/" target="_blank" className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
+                    <ArrowSquareOutIcon size={16} /> View site
+                  </Link>
+                ) : (
+                  <button type="button" onClick={onLogout} className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-red hover:bg-adm-card">
+                    <SignOutIcon size={16} /> Log out
+                  </button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

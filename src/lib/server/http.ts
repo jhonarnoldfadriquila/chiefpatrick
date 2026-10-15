@@ -47,11 +47,12 @@ export function route<P = Record<string, string>>(
     } catch (err) {
       if (err instanceof ApiError) return fail(err.status, err.message, err.fields);
       const code = (err as { code?: string }).code;
-      if (code === "ECONNREFUSED" || code === "ER_ACCESS_DENIED_ERROR" || code === "ER_BAD_DB_ERROR" || code === "ETIMEDOUT") {
+      // Connection refused / timed out / host unknown, bad password (28P01), missing database (3D000).
+      if (code && ["ECONNREFUSED", "ETIMEDOUT", "ENOTFOUND", "NO_DATABASE_URL", "28P01", "3D000"].includes(code)) {
         console.error("[api] database unavailable:", code);
-        return fail(503, "The database is not reachable. Check that MySQL is running.");
+        return fail(503, "The database is not reachable. Check DATABASE_URL and that the database is running.");
       }
-      if (code === "ER_DUP_ENTRY") return fail(409, "That already exists.");
+      if (code === "23505") return fail(409, "That already exists.");
       console.error("[api]", err);
       return fail(500, "Something went wrong on the server.");
     }

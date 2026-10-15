@@ -84,7 +84,7 @@ function AdminFooter() {
 }
 
 /** Sidebar + header + content + footer for every signed-in admin page. */
-export function AdminShell({ user, children }: { user: SessionUserLite; children: ReactNode }) {
+export function AdminShell({ user, noLogin = false, children }: { user: SessionUserLite; noLogin?: boolean; children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -116,9 +116,9 @@ export function AdminShell({ user, children }: { user: SessionUserLite; children
     <MotionConfig reducedMotion="user">
       <ToastProvider>
         <div className="min-h-svh bg-adm-bg font-sans text-adm-text">
-          <Sidebar user={user} collapsed={collapsed} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} onLogout={logout} onChangePassword={() => setPwOpen(true)} />
+          <Sidebar user={user} collapsed={collapsed} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} noLogin={noLogin} onLogout={logout} onChangePassword={() => setPwOpen(true)} />
           <div className={cn("flex min-h-svh min-w-0 flex-col transition-[padding] duration-200", collapsed ? "lg:pl-[76px]" : "lg:pl-[248px]")}>
-            <Header user={user} onToggleSidebar={toggle} onOpenMobile={() => setMobileOpen(true)} onLogout={logout} onChangePassword={() => setPwOpen(true)} />
+            <Header user={user} onToggleSidebar={toggle} onOpenMobile={() => setMobileOpen(true)} noLogin={noLogin} onLogout={logout} onChangePassword={() => setPwOpen(true)} />
             <main className="min-w-0 flex-1 px-4 py-5 md:px-6">{children}</main>
             <AdminFooter />
           </div>

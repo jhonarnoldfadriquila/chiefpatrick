@@ -1,5 +1,5 @@
 // Gallery, venues, testimonials and website settings.
-import { exec, json, query, queryOne, type Row } from "@/lib/server/mysql";
+import { exec, json, query, queryOne, type Row } from "@/lib/server/db";
 import { moveRow, nextPosition, setClause, toBool } from "@/lib/server/repos/common";
 import type { GalleryRecord, SettingsKey, SiteSettings, TestimonialRecord, VenueAreaRecord, VenueRecord } from "@/types/admin";
 import { DEFAULT_SETTINGS } from "@/lib/data/defaults";
@@ -115,7 +115,7 @@ export const deleteTestimonial = (id: number) => exec("DELETE FROM testimonials 
 // ---------- settings ----------
 
 export async function getSettings(): Promise<SiteSettings> {
-  const rows = await query("SELECT `key`, value FROM settings");
+  const rows = await query("SELECT key, value FROM settings");
   const out = structuredClone(DEFAULT_SETTINGS) as unknown as Record<string, unknown>;
   for (const r of rows) {
     if (r.key in out) out[r.key] = { ...(out[r.key] as object), ...json<object>(r.value, {}) };
@@ -124,7 +124,7 @@ export async function getSettings(): Promise<SiteSettings> {
 }
 
 export async function setSetting<K extends SettingsKey>(key: K, value: SiteSettings[K]) {
-  await exec("INSERT INTO settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)", [key, JSON.stringify(value)]);
+  await exec("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()", [key, JSON.stringify(value)]);
 }
 
 // ---------- demo data ----------

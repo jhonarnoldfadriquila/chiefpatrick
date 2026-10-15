@@ -1,4 +1,4 @@
-import { exec, query, queryOne } from "@/lib/server/mysql";
+import { exec, query, queryOne } from "@/lib/server/db";
 import { hashPassword, verifyPassword, type Role } from "@/lib/server/auth";
 import type { UserRecord } from "@/types/admin";
 

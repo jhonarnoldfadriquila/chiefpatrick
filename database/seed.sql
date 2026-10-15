@@ -1,11 +1,7 @@
 -- Chef Patrick's Kitchen — base content (the real menu, packages, gallery, venues, testimonials, settings).
--- Generated from the site's original content. Safe to re-run: it clears these tables first.
+-- PostgreSQL. Run after database/schema.sql. Safe to re-run: it clears these tables first.
 -- Demo dashboard records (sample reservations, events, inquiries) are separate: `npm run db:demo`.
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE menu_items; TRUNCATE TABLE menu_categories; TRUNCATE TABLE packages; TRUNCATE TABLE gallery;
-TRUNCATE TABLE venues; TRUNCATE TABLE venue_areas; TRUNCATE TABLE testimonials; TRUNCATE TABLE settings;
-SET FOREIGN_KEY_CHECKS = 1;
+TRUNCATE TABLE menu_items, menu_categories, packages, gallery, venues, venue_areas, testimonials, settings RESTART IDENTITY CASCADE;
 
 -- Menu (as published on chefpatrickskitchen.ph/menu)
 INSERT INTO menu_categories (id, slug, name, position) VALUES (1, 'soup', 'Soup', 1);
@@ -187,12 +183,12 @@ INSERT INTO testimonials (quote, author, event, published, is_sample) VALUES ('T
 INSERT INTO testimonials (quote, author, event, published, is_sample) VALUES ('Hot food on time for a year-end party of ninety. The crew handled everything.', 'Sample client', 'Company event · 90 guests', 1, 1);
 
 -- Website settings
-INSERT INTO settings (`key`, value) VALUES ('restaurant', '{"name": "Chef Patrick''s Kitchen", "tagline": "Serving good food since 2009", "description": "Filipino and Chinese catering, event styling and function halls in Caloocan and Manila. Weddings, debuts, birthdays and company events since 2009.", "founded": 2009}');
-INSERT INTO settings (`key`, value) VALUES ('contact', '{"hours": "10:00 AM – 9:30 PM daily", "primaryPhone": "0917 315 9262", "email": "", "branches": [{"id": "caloocan", "name": "UE Caloocan", "role": "Main office, kitchen and halls", "address": "263 UE Tech St., University Hills Subd., Caloocan City", "mapHref": "https://maps.google.com/?q=263+UE+Tech+St+University+Hills+Subdivision+Caloocan+City", "phones": ["8361-0493", "8586-9262", "8293-8657", "0917 315 9262", "0927 257 3129"], "since": "28 June 2013"}, {"id": "balut", "name": "Balut, Tondo", "role": "Where it started", "address": "2293 Rodriguez St., Balut, Tondo, Manila", "mapHref": "https://maps.google.com/?q=2293+Rodriguez+St+Balut+Tondo+Manila", "phones": ["8522-3425", "8239-1885", "0922 878 0003"], "since": "2009"}]}');
-INSERT INTO settings (`key`, value) VALUES ('social', '{"facebook": "https://www.facebook.com/chef.pat.kitchen82/", "instagram": "https://www.instagram.com/chefpatrickskitchen/", "tiktok": "", "youtube": ""}');
-INSERT INTO settings (`key`, value) VALUES ('seo', '{"title": "Chef Patrick''s Kitchen | Filipino & Chinese Catering in Caloocan and Tondo", "description": "Filipino and Chinese catering, event styling and function halls in Caloocan and Manila. Weddings, debuts, birthdays and company events since 2009.", "keywords": "catering Caloocan, catering Tondo, Filipino Chinese catering, function hall Caloocan, wedding catering Manila, debut catering"}');
-INSERT INTO settings (`key`, value) VALUES ('appearance', '{"accentColor": "#c8102e", "showPreloader": true, "showGrain": true}');
-INSERT INTO settings (`key`, value) VALUES ('kiddie', '{"price": 350, "minimum": 30}');
+INSERT INTO settings (key, value) VALUES ('restaurant', '{"name": "Chef Patrick''s Kitchen", "tagline": "Serving good food since 2009", "description": "Filipino and Chinese catering, event styling and function halls in Caloocan and Manila. Weddings, debuts, birthdays and company events since 2009.", "founded": 2009}');
+INSERT INTO settings (key, value) VALUES ('contact', '{"hours": "10:00 AM – 9:30 PM daily", "primaryPhone": "0917 315 9262", "email": "", "branches": [{"id": "caloocan", "name": "UE Caloocan", "role": "Main office, kitchen and halls", "address": "263 UE Tech St., University Hills Subd., Caloocan City", "mapHref": "https://maps.google.com/?q=263+UE+Tech+St+University+Hills+Subdivision+Caloocan+City", "phones": ["8361-0493", "8586-9262", "8293-8657", "0917 315 9262", "0927 257 3129"], "since": "28 June 2013"}, {"id": "balut", "name": "Balut, Tondo", "role": "Where it started", "address": "2293 Rodriguez St., Balut, Tondo, Manila", "mapHref": "https://maps.google.com/?q=2293+Rodriguez+St+Balut+Tondo+Manila", "phones": ["8522-3425", "8239-1885", "0922 878 0003"], "since": "2009"}]}');
+INSERT INTO settings (key, value) VALUES ('social', '{"facebook": "https://www.facebook.com/chef.pat.kitchen82/", "instagram": "https://www.instagram.com/chefpatrickskitchen/", "tiktok": "", "youtube": ""}');
+INSERT INTO settings (key, value) VALUES ('seo', '{"title": "Chef Patrick''s Kitchen | Filipino & Chinese Catering in Caloocan and Tondo", "description": "Filipino and Chinese catering, event styling and function halls in Caloocan and Manila. Weddings, debuts, birthdays and company events since 2009.", "keywords": "catering Caloocan, catering Tondo, Filipino Chinese catering, function hall Caloocan, wedding catering Manila, debut catering"}');
+INSERT INTO settings (key, value) VALUES ('appearance', '{"accentColor": "#c8102e", "showPreloader": true, "showGrain": true}');
+INSERT INTO settings (key, value) VALUES ('kiddie', '{"price": 350, "minimum": 30}');
 
 -- Date the base content to when it was first published (so it isn't counted as "added this month").
 UPDATE menu_categories SET created_at = '2023-10-01 09:00:00';
@@ -200,3 +196,7 @@ UPDATE menu_items SET created_at = '2023-10-01 09:00:00';
 UPDATE packages SET created_at = '2023-10-01 09:00:00';
 UPDATE gallery SET created_at = '2023-09-15 09:00:00';
 UPDATE testimonials SET created_at = '2023-10-01 09:00:00';
+
+-- Rows above use fixed ids; move the id counters past them.
+SELECT setval(pg_get_serial_sequence('menu_categories', 'id'), (SELECT MAX(id) FROM menu_categories));
+SELECT setval(pg_get_serial_sequence('venue_areas', 'id'), (SELECT MAX(id) FROM venue_areas));
