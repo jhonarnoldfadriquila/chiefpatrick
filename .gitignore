@@ -1,0 +1,38 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/.next-build/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+
+# photos uploaded from the admin, and the old JSON store
+/uploads/
+/data/
+
+# env files
+.env
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# local AI-tool folders and test screenshots (not part of the site)
+/.agents/
+/.claude/
+/.codex/
+/.impeccable/
+/.taste-skill/
+skills-lock.json
