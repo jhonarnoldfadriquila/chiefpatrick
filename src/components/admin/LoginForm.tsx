@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { WarningCircleIcon } from "@phosphor-icons/react";
+import { EyeIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { AdminLogo } from "@/components/admin/shell/Logo";
 import { Button, Field, inputCls } from "@/components/admin/ui";
 import { api, ApiClientError } from "@/lib/admin/api";
 
-export function LoginForm({ dbDown }: { dbDown?: boolean }) {
+export function LoginForm({ dbDown, guest }: { dbDown?: boolean; guest?: boolean }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +58,20 @@ export function LoginForm({ dbDown }: { dbDown?: boolean }) {
         <Button type="submit" loading={loading} className="mt-6 w-full">
           Sign in
         </Button>
+        {guest && (
+          <>
+            <div className="my-5 flex items-center gap-3 text-xs text-adm-muted">
+              <span className="h-px flex-1 bg-adm-border" /> or <span className="h-px flex-1 bg-adm-border" />
+            </div>
+            <Link
+              href="/admin"
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-adm-border text-sm font-medium text-adm-text transition-colors hover:border-adm-red hover:text-adm-red"
+            >
+              <EyeIcon size={17} /> Continue as guest
+            </Link>
+            <p className="mt-2 text-center text-xs text-adm-muted">View-only: look around without signing in.</p>
+          </>
+        )}
       </motion.form>
     </main>
   );
