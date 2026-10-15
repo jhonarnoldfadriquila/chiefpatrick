@@ -41,6 +41,7 @@ export function route<P = Record<string, string>>(
       const user = opts.auth ? await currentUser() : null;
       if (opts.auth) {
         if (!user) throw new ApiError(401, "Please sign in.");
+        if (user.viewOnly && req.method !== "GET") throw new ApiError(403, "This is a view-only demo. Sign in to make changes.");
         if (opts.auth === "admin" && user.role !== "admin") throw new ApiError(403, "Only administrators can do this.");
       }
       return await fn({ req, params: context?.params ? await context.params : ({} as P), user });

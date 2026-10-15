@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MotionConfig } from "framer-motion";
-import { FacebookLogoIcon, InstagramLogoIcon } from "@phosphor-icons/react";
+import Link from "next/link";
+import { EyeIcon, FacebookLogoIcon, InstagramLogoIcon } from "@phosphor-icons/react";
 import { Header } from "@/components/admin/shell/Header";
 import { AdminLogo } from "@/components/admin/shell/Logo";
 import { Sidebar } from "@/components/admin/shell/Sidebar";
@@ -16,6 +17,7 @@ export interface SessionUserLite {
   name: string;
   email: string;
   role: "admin" | "staff";
+  viewOnly?: boolean;
 }
 
 function PasswordModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -119,6 +121,15 @@ export function AdminShell({ user, noLogin = false, children }: { user: SessionU
           <Sidebar user={user} collapsed={collapsed} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} noLogin={noLogin} onLogout={logout} onChangePassword={() => setPwOpen(true)} />
           <div className={cn("flex min-h-svh min-w-0 flex-col transition-[padding] duration-200", collapsed ? "lg:pl-[76px]" : "lg:pl-[248px]")}>
             <Header user={user} onToggleSidebar={toggle} onOpenMobile={() => setMobileOpen(true)} noLogin={noLogin} onLogout={logout} onChangePassword={() => setPwOpen(true)} />
+            {user.viewOnly && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-adm-border bg-adm-card px-4 py-2 text-[13px] text-adm-muted md:px-6">
+                <EyeIcon size={16} className="text-adm-red" />
+                <span>View-only demo: you can look around, but changes won&apos;t be saved.</span>
+                <Link href="/admin/login" className="font-medium text-adm-text underline-offset-2 hover:text-adm-red hover:underline">
+                  Sign in to edit
+                </Link>
+              </div>
+            )}
             <main className="min-w-0 flex-1 px-4 py-5 md:px-6">{children}</main>
             <AdminFooter />
           </div>

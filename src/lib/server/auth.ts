@@ -16,6 +16,8 @@ export interface SessionUser {
   name: string;
   email: string;
   role: Role;
+  /** A signed-out visitor browsing the view-only demo: can look, can't save. */
+  viewOnly?: boolean;
 }
 
 const COOKIE = "cpk_session";
@@ -85,11 +87,23 @@ export async function logout() {
 export const authDisabled = process.env.ADMIN_AUTH_DISABLED === "true" && process.env.NODE_ENV !== "production";
 const GUEST_ADMIN: SessionUser = { id: 0, name: "Admin (no login)", email: "admin@localhost", role: "admin" };
 
+// View-only demo: signed-out visitors can browse /admin but every save is refused (see route() in
+// http.ts). On by default; set ADMIN_VIEW_ONLY_DEMO=false to require sign-in again. The guest is
+// "staff" so admin-only data (staff accounts) stays hidden.
+export const viewOnlyDemo = process.env.ADMIN_VIEW_ONLY_DEMO !== "false";
+const VIEWER: SessionUser = { id: 0, name: "Guest", email: "", role: "staff", viewOnly: true };
+
 export async function currentUser(): Promise<SessionUser | null> {
   if (authDisabled) {
     const admin = await queryOne<SessionUser>("SELECT id, name, email, role FROM users WHERE role = 'admin' ORDER BY id LIMIT 1").catch(() => null);
     return admin ?? GUEST_ADMIN;
   }
+  const user = await sessionUser();
+  return user ?? (viewOnlyDemo ? VIEWER : null);
+}
+
+/** The account actually signed in with a session cookie (never the demo viewer). */
+export async function sessionUser(): Promise<SessionUser | null> {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   return queryOne<SessionUser>(

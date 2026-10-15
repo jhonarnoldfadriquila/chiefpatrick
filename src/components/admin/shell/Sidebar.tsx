@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowSquareOutIcon, CaretUpDownIcon, KeyIcon, SignOutIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, CaretUpDownIcon, KeyIcon, SignInIcon, SignOutIcon } from "@phosphor-icons/react";
 import { AdminLogo } from "@/components/admin/shell/Logo";
 import { ADMIN_NAV, isActive } from "@/components/admin/shell/nav";
 import { useDismiss } from "@/components/admin/shell/useDismiss";
@@ -81,9 +81,11 @@ function SidebarBody({ user, collapsed, noLogin, onLogout, onChangePassword, onN
               <Link href="/" target="_blank" className="flex items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
                 <ArrowSquareOutIcon size={16} /> View website
               </Link>
-              <button type="button" onClick={onChangePassword} className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
-                <KeyIcon size={16} /> Change password
-              </button>
+              {!user.viewOnly && (
+                <button type="button" onClick={onChangePassword} className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
+                  <KeyIcon size={16} /> Change password
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -98,13 +100,22 @@ function SidebarBody({ user, collapsed, noLogin, onLogout, onChangePassword, onN
             <>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium text-adm-text">{user.name}</span>
-                <span className="block truncate text-[11px] text-adm-muted">{user.role === "admin" ? "System Administrator" : "Staff"}</span>
+                <span className="block truncate text-[11px] text-adm-muted">{user.viewOnly ? "View-only demo" : user.role === "admin" ? "System Administrator" : "Staff"}</span>
               </span>
               <CaretUpDownIcon size={14} className="text-adm-muted" />
             </>
           )}
         </button>
-        {noLogin ? (
+        {user.viewOnly ? (
+          <Link
+            href="/admin/login"
+            className={cn("mt-1 flex h-9 w-full items-center gap-3 rounded-md text-sm text-adm-muted hover:bg-adm-card2 hover:text-adm-text", collapsed ? "justify-center" : "px-3")}
+            title="Sign in"
+          >
+            <SignInIcon size={18} />
+            {!collapsed && "Sign In"}
+          </Link>
+        ) : noLogin ? (
           <Link
             href="/"
             target="_blank"

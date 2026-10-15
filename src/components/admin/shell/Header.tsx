@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowSquareOutIcon, BellIcon, CaretDownIcon, KeyIcon, ListIcon, MagnifyingGlassIcon, SidebarSimpleIcon, SignOutIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, BellIcon, CaretDownIcon, KeyIcon, ListIcon, MagnifyingGlassIcon, SidebarSimpleIcon, SignInIcon, SignOutIcon } from "@phosphor-icons/react";
 import { initials } from "@/components/admin/shell/Sidebar";
 import { useDismiss } from "@/components/admin/shell/useDismiss";
 import { api } from "@/lib/admin/api";
@@ -226,11 +226,17 @@ export function Header({ user, onToggleSidebar, onOpenMobile, noLogin, onLogout,
                 transition={{ duration: 0.15 }}
                 className="absolute top-full right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border border-adm-border bg-adm-card2 py-1 shadow-xl"
               >
-                <p className="truncate border-b border-adm-border px-3 py-2 text-xs text-adm-muted">{user.email}</p>
-                <button type="button" onClick={() => (setMenu(false), onChangePassword())} className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
-                  <KeyIcon size={16} /> Change password
-                </button>
-                {noLogin ? (
+                <p className="truncate border-b border-adm-border px-3 py-2 text-xs text-adm-muted">{user.viewOnly ? "View-only demo" : user.email}</p>
+                {!user.viewOnly && (
+                  <button type="button" onClick={() => (setMenu(false), onChangePassword())} className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
+                    <KeyIcon size={16} /> Change password
+                  </button>
+                )}
+                {user.viewOnly ? (
+                  <Link href="/admin/login" className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
+                    <SignInIcon size={16} /> Sign in
+                  </Link>
+                ) : noLogin ? (
                   <Link href="/" target="_blank" className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-adm-text hover:bg-adm-card">
                     <ArrowSquareOutIcon size={16} /> View site
                   </Link>
