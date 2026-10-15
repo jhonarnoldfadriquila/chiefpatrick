@@ -14,5 +14,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     // Database down: show the form with a notice instead of crashing.
   }
   if (signedIn) redirect("/admin");
-  return <LoginForm dbDown={db === "down"} guest={viewOnlyDemo} />;
+  // Pre-fill the admin email (from ADMIN_EMAIL) so only the password needs typing.
+  return <LoginForm dbDown={db === "down"} guest={viewOnlyDemo} email={process.env.ADMIN_EMAIL || "admin@chefpatrickskitchen.ph"} />;
 }

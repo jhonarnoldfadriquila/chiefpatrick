@@ -9,9 +9,9 @@ import { AdminLogo } from "@/components/admin/shell/Logo";
 import { Button, Field, inputCls } from "@/components/admin/ui";
 import { api, ApiClientError } from "@/lib/admin/api";
 
-export function LoginForm({ dbDown, guest }: { dbDown?: boolean; guest?: boolean }) {
+export function LoginForm({ dbDown, guest, email: defaultEmail = "" }: { dbDown?: boolean; guest?: boolean; email?: string }) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
   const [password, setPassword] = useState("");
   const [error, setError] = useState(dbDown ? "The database is not reachable. Check DATABASE_URL in .env.local." : "");
   const [loading, setLoading] = useState(false);
@@ -44,10 +44,10 @@ export function LoginForm({ dbDown, guest }: { dbDown?: boolean; guest?: boolean
         <p className="mt-1 text-sm text-adm-muted">Use your staff email and password.</p>
         <div className="mt-6 space-y-4">
           <Field label="Email">
-            {(id) => <input id={id} type="email" autoComplete="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />}
+            {(id) => <input id={id} type="email" autoComplete="username" required autoFocus={!defaultEmail} value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />}
           </Field>
           <Field label="Password">
-            {(id) => <input id={id} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />}
+            {(id) => <input id={id} type="password" autoComplete="current-password" required autoFocus={!!defaultEmail} value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />}
           </Field>
         </div>
         {error && (
