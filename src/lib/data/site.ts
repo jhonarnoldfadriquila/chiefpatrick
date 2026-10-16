@@ -50,6 +50,7 @@ export const siteConfig = {
     { label: "About Us", short: "About", href: "/about", icon: "about" },
     { label: "Menu", short: "Menu", href: "/menu", icon: "menu" },
     { label: "Packages", short: "Packages", href: "/catering", icon: "catering" },
+    { label: "Meal Builder", short: "Builder", href: "/meal-builder", icon: "builder" },
     { label: "Events", short: "Events", href: "/events", icon: "events" },
     { label: "Venues", short: "Venues", href: "/venues", icon: "venues" },
     { label: "Gallery", short: "Gallery", href: "/gallery", icon: "gallery" },

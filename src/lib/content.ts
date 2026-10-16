@@ -4,6 +4,7 @@
 import { cateringPackages, eventOfferings } from "@/lib/data/catering";
 import { DEFAULT_SETTINGS } from "@/lib/data/defaults";
 import { testimonials as fallbackTestimonials } from "@/lib/data/home";
+import type { Catalog } from "@/lib/data/meal-builder";
 import { kiddieMenu, menuSections, type MenuSection } from "@/lib/data/menu";
 import { galleryOrder, photos } from "@/lib/data/photos";
 import { ownHalls, partnerVenues } from "@/lib/data/venues";
@@ -92,4 +93,10 @@ export async function getStats() {
     { value: partners, label: "Partner venues across Metro Manila" },
     { value: largest, label: "Guests at our largest partner venue" },
   ];
+}
+
+/** Everything the meal builder sells: the menu, the buffet packages and the kiddie sets. */
+export async function getMealCatalog(): Promise<Catalog> {
+  const [menu, packages, kiddie] = await Promise.all([getMenu(), getCateringPackages(), getKiddie()]);
+  return { menu, packages, kiddie: { ...kiddie, sets: kiddieMenu.sets.map((s) => s.name) } };
 }

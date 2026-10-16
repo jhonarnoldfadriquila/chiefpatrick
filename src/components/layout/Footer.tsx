@@ -140,7 +140,9 @@ export function Footer() {
           &copy; {year} {settings.restaurant.name}. {settings.restaurant.tagline}.
         </p>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <p>Filipino &amp; Chinese catering · Caloocan · Tondo</p>
+          <a href="https://multiplytalents.com" target="_blank" rel="noopener noreferrer" className="micro transition-colors hover:text-rice">
+            Powered by Multiply Talents
+          </a>
           <Link href="/admin" className="micro inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 transition-colors hover:border-red hover:text-red">
             Admin <ArrowUpRightIcon size={14} weight="light" />
           </Link>
